@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Turtle Beach Guardian - Isometric Phaser Arcade Game</title>
+    <!-- Google Fonts for modern typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/src/style.css">
+    
+    <!-- PWA configuration -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff7e5f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="TurtleGuardian">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Phaser Canvas Parent Element -->
+        <div id="phaser-game"></div>
+
+        <!-- Start Screen Overlay -->
+        <div id="start-screen" class="overlay active">
+            <div class="glass-panel main-menu">
+                <div class="title-container">
+                    <span class="badge">Phaser 3 & TS</span>
+                    <h1 class="game-title">TURTLE BEACH<br><span class="highlight">GUARDIAN</span></h1>
+                    <p class="tagline">Protect the baby turtles as they rush to the ocean!</p>
+                </div>
+                
+                <div class="game-instructions">
+                    <h3>How to Play</h3>
+                    <ul>
+                        <li><i class="fa-solid fa-arrows-to-eye"></i> Watch for <strong>seagull shadows</strong> circling the sand.</li>
+                        <li><i class="fa-solid fa-gamepad"></i> Use <strong>ARROW KEYS</strong> or <strong>WASD</strong> to run as the Beach Guardian.</li>
+                        <li><i class="fa-solid fa-shield-halved"></i> Run close to seagulls to <strong>scare them away</strong> before they grab the baby turtles.</li>
+                        <li><i class="fa-solid fa-person-running"></i> Help turtles crawl safely from their nests into the <strong>shimmering ocean</strong>!</li>
+                    </ul>
+                </div>
+
+                <div class="menu-actions">
+                    <button id="start-btn" class="btn primary-btn">
+                        <i class="fa-solid fa-play"></i> Start Patrol
+                    </button>
+                    <button id="audio-toggle-menu" class="btn secondary-btn">
+                        <i class="fa-solid fa-volume-high"></i> Audio: ON
+                    </button>
+                </div>
+            </div>
+            
+            <div class="ambient-waves-bg"></div>
+        </div>
+
+        <!-- In-Game HUD -->
+        <div id="hud" class="hud-layer">
+            <!-- Top Left: Stats -->
+            <div class="hud-panel glass-panel stats-panel">
+                <div class="stat-item">
+                    <span class="stat-label">Saved</span>
+                    <div class="stat-value-container">
+                        <i class="fa-solid fa-turtle turtle-icon pulse"></i>
+                        <span id="score-val" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label">Lost</span>
+                    <div class="stat-value-container">
+                        <i class="fa-solid fa-heart-crack heart-icon"></i>
+                        <span id="lost-val" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <span class="stat-label">Level</span>
+                    <span id="level-val" class="stat-value">1</span>
+                </div>
+            </div>
+
+            <!-- Top Right: Wave Progress -->
+            <div class="hud-panel glass-panel progress-panel">
+                <div class="progress-info">
+                    <span>Active Seagulls: <strong id="seagull-count">0</strong></span>
+                    <span>Turtles Nesting: <strong id="turtle-count">0</strong></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="wave-progress" class="progress-bar-fill"></div>
+                </div>
+                <div class="wave-name" id="wave-title">WAVE 1: MORNING BREEZE</div>
+            </div>
+
+            <!-- Top Center: Alerts / Notifications -->
+            <div id="hud-alert" class="hud-alert hidden">
+                <span id="alert-text">SEAGULL SPOTTED!</span>
+            </div>
+
+            <!-- Bottom Left: Control helper & Virtual Joystick -->
+            <div class="hud-panel-left">
+                <div class="hud-panel glass-panel controls-panel mini-hide">
+                    <div class="control-key-group">
+                        <span class="key-cap">W</span>
+                        <div class="key-row">
+                            <span class="key-cap">A</span>
+                            <span class="key-cap">S</span>
+                            <span class="key-cap">D</span>
+                        </div>
+                    </div>
+                    <div class="control-text">Run / Guard</div>
+                </div>
+                
+                <div id="joystick-zone" class="joystick-container">
+                    <div class="joystick-ring">
+                        <div id="joystick-knob" class="joystick-knob"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Right: Action Buttons & System Controls -->
+            <div class="hud-panel-right">
+                <div class="action-buttons-container">
+                    <button id="btn-jump" class="action-btn jump-btn" title="Sprint / Jump Forward">
+                        <i class="fa-solid fa-person-running"></i>
+                        <div id="jump-cooldown" class="cooldown-overlay"></div>
+                    </button>
+                    <button id="btn-punch" class="action-btn punch-btn" title="Swing Stick / Punch">
+                        <i class="fa-solid fa-hand-fist"></i>
+                    </button>
+                </div>
+
+                <div class="hud-panel-buttons">
+                    <button id="audio-toggle-hud" class="circle-btn" title="Toggle Sound">
+                        <i class="fa-solid fa-volume-high"></i>
+                    </button>
+                    <button id="pause-btn" class="circle-btn" title="Pause Game">
+                        <i class="fa-solid fa-pause"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pause Screen Overlay -->
+        <div id="pause-screen" class="overlay">
+            <div class="glass-panel pause-menu">
+                <h2>Game Paused</h2>
+                <p>Take a breath, guardian. The turtles are waiting.</p>
+                <div class="menu-actions">
+                    <button id="resume-btn" class="btn primary-btn">
+                        <i class="fa-solid fa-play"></i> Resume Patrol
+                    </button>
+                    <button id="restart-pause-btn" class="btn secondary-btn">
+                        <i class="fa-solid fa-rotate-left"></i> Restart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen Overlay -->
+        <div id="game-over-screen" class="overlay">
+            <div class="glass-panel game-over-menu">
+                <span class="badge warning-badge">Patrol Ended</span>
+                <h2 class="game-over-title">BEACH OVERRUN</h2>
+                <p class="game-over-summary">Too many turtles were caught by seagulls.</p>
+                
+                <div class="stats-summary-grid">
+                    <div class="summary-box">
+                        <span class="box-label">Turtles Saved</span>
+                        <span class="box-value" id="final-saved">0</span>
+                    </div>
+                    <div class="summary-box">
+                        <span class="box-label">Scared Away</span>
+                        <span class="box-value" id="final-scared">0</span>
+                    </div>
+                    <div class="summary-box">
+                        <span class="box-label">Max Level</span>
+                        <span class="box-value" id="final-level">1</span>
+                    </div>
+                    <div class="summary-box">
+                        <span class="box-label">Rescue Rate</span>
+                        <span class="box-value" id="final-rate">0%</span>
+                    </div>
+                </div>
+
+                <div class="menu-actions">
+                    <button id="restart-btn" class="btn primary-btn">
+                        <i class="fa-solid fa-rotate-left"></i> Patrol Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main ESM Script -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
